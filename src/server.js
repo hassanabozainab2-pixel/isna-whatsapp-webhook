@@ -54,7 +54,7 @@ async function answer(text) {
   const area = areas.find(x => q.toLowerCase().includes(x.name.toLowerCase()));
   if (/الأقسام|الاقسام|الخدمات|الأقسام المتاحة/.test(q)) return "أقسام دليل إسنا: " + categories.map(x => x.name).join("، ") + ". ابعت اسم القسم أو المنطقة للبحث.";
   if (/المناطق|الأماكن|الاماكن/.test(q)) return "المناطق المتاحة: " + areas.map(x => x.name).join("، ");
-  const filters = { select: "name,description,address,phone,whatsapp", status: "eq.approved", limit: "8" };
+  const filters = { select: "name,description,address,phone,whatsapp", status: "eq.published", limit: "8" };
   if (category) filters.category_id = "eq." + category.id;
   if (area) filters.area_id = "eq." + area.id;
   const terms = q.split(/\s+/).filter(w => w.length > 2 && ![category?.name, area?.name].includes(w));
