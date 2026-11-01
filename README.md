@@ -1,35 +1,34 @@
 # Isna WhatsApp Webhook
 
-A small Node.js webhook service for the دليل إسنا للخدمات directory.
+Webhook for دليل إسنا للخدمات. The repository keeps the existing Node/Express implementation and includes a Cloudflare Workers runtime at `src/worker.js`.
 
-## Current scope
-- Meta WhatsApp Cloud API webhook verification (GET /webhook).
-- Validates Meta X-Hub-Signature-256 before processing POST /webhook.
-- Sends Arabic text replies through WhatsApp Cloud API.
-- Reads categories, areas, and published business listings from the existing Supabase project.
-- Health endpoint: GET /health.
+## Recommended free deployment: Cloudflare Workers
 
-## Deploy on Render
-- Runtime: Node
-- Build command: `npm install`
-- Start command: `npm start`
-- Health check path: `/health`
-- Branch: `main`
+Cloudflare Workers Free currently includes up to 100,000 requests/day. No paid Workers plan is needed for this expected webhook workload. Free-plan availability and limits can change; check the dashboard before confirming deployment.
 
-## Required Render environment variables
-Copy the names from `.env.example` and set real values in Render's Environment page:
-- `META_VERIFY_TOKEN`: a long random string you choose; use the same value in Meta webhook configuration.
-- `META_APP_SECRET`: Meta app secret, used to validate webhook signatures.
+### Deploy
+1. Sign in to Cloudflare and open Workers & Pages.
+2. Create a Worker named `isna-whatsapp-webhook`.
+3. Deploy the contents of `src/worker.js` as the Worker entry point, or connect this GitHub repository and configure the build/deploy to use `wrangler.toml`.
+4. Add the secrets below under Worker Settings > Variables and Secrets.
+5. Deploy and test `/health`.
+
+### Required secrets
+- `META_VERIFY_TOKEN`: a long random value you choose; enter the same value in Meta webhook settings.
+- `META_APP_SECRET`: Meta app secret.
 - `WHATSAPP_TOKEN`: WhatsApp Cloud API access token.
-- `WHATSAPP_PHONE_NUMBER_ID`: the WhatsApp phone number ID from Meta.
-- `WHATSAPP_API_VERSION`: supported Graph API version (default in code: v23.0).
+- `WHATSAPP_PHONE_NUMBER_ID`: WhatsApp phone number ID.
 - `SUPABASE_URL`: URL of the existing Isna Supabase project.
-- `SUPABASE_SERVICE_ROLE_KEY`: service-role key for server-side access only. Never put it in frontend code or commit it to GitHub.
+- `SUPABASE_SERVICE_ROLE_KEY`: Supabase service-role key. Store as a secret only; never commit it or expose it in browser code.
 
-## Meta webhook configuration
-After deployment, set callback URL to:
-`https://YOUR-RENDER-SERVICE.onrender.com/webhook`
-Subscribe to the `messages` webhook field and use the exact `META_VERIFY_TOKEN` configured above.
+Optional variable:
+- `WHATSAPP_API_VERSION`: defaults to `v23.0`.
 
-## Important
-The service is not live until deployed, all secrets are configured, Meta verifies the callback, and an end-to-end message test succeeds. Never commit real tokens or secrets. The current reply logic is a starter; before public launch, add persistent message deduplication, rate limiting, inquiry capture/human handoff, and stronger Arabic intent matching.
+### Meta webhook
+After deployment, use:
+- Callback URL: `https://YOUR-WORKER.YOUR-SUBDOMAIN.workers.dev/webhook`
+- Verify token: the exact `META_VERIFY_TOKEN` secret.
+- Subscribe to the `messages` webhook field.
+
+### Important
+The Worker is not live until deployed, all secrets are configured, Meta verifies the callback, and a real end-to-end test succeeds. No real credentials belong in GitHub. The current search/reply logic is a starter and must be checked against the actual Supabase schema before public launch. Add durable message deduplication, rate limiting, inquiry capture and human handoff before scaling.
